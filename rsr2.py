@@ -98,6 +98,7 @@ texts = {
         "neighborhood_insights": "Neighborhood Insights",
         "select_neighborhood": "Select a Neighborhood",
         "price_distribution": "Price Distribution in",
+        "price_distribution_all": "Price Distribution in All Regions",
         "property_category_analysis": "Property Category Analysis",
         "select_category": "Select a Property Category",
         "predictive_modeling": "Predictive Modeling",
@@ -107,6 +108,21 @@ texts = {
         "enter_area": "Enter Property Area (sq. meters)",
         "evaluation_score": "Enter Evaluation Score",
         "scatter_plot_title": "Real Prices and Predicted Price",
+        "city":"City",
+        "rsCategory":"Real State Category",
+        "title_location":"0.0",
+        "area":"Area (sq. meters)",
+        "one_night_price":"One Night Price",
+        "NeighborhoodsVsEvaluation":"Top 10 Neighborhoods by Average Evaluation in",
+        "NeighborhoodsVsPropertyCount":"Top 10 Neighborhoods by Property Count",
+        "neighborhood":"Neighborhood",
+        "average_evaluation_city":"Average Evaluation by City",
+        "top_cities_highst_average_price":"Top Cities with Highest Average Rental Prices",
+        "count":"Count",
+        "areaVsEvaluation":"Relationship Between Area and Evaluation",
+        "evaluation":"Evaluation",
+        "evaluation_distribution":"Evaluation Distribution in",
+        "area_dist_Properties":"Area Distribution of Properties",
     },
     "العربية": {
         "page_title": "نظام تحليل بيانات أسعار تأجير العقارات",
@@ -122,6 +138,7 @@ texts = {
         "neighborhood_insights": "رؤى الأحياء",
         "select_neighborhood": "اختر حيًا",
         "price_distribution": "توزيع الأسعار في",
+        "price_distribution_all": "توزيع الأسعار في كافة المناطق",
         "property_category_analysis": "تحليل فئات العقارات",
         "select_category": "اختر فئة عقارية",
         "predictive_modeling": "النمذجة التنبؤية",
@@ -131,6 +148,21 @@ texts = {
         "enter_area": "أدخل مساحة العقار (بالمتر المربع)",
         "evaluation_score": "أدخل درجة التقييم",
         "scatter_plot_title": "الأسعار الحقيقية والسعر المتوقع",
+        "city":"المدينة",
+        "rsCategory":"فئة العقار",
+        "title_location":"1.0",
+        "area":"المساحة (بالمتر المربع)",
+        "one_night_price":"سعر الليلة الواحدة",
+        "NeighborhoodsVsEvaluation":"أعلى 10 أحياء تقييماً في",
+        "NeighborhoodsVsPropertyCount":"أفضل 10 أحياء حسب عدد العقارات",
+        "neighborhood":"الحيّ",
+        "average_evaluation_city":"متوسط التقييم حسب المدينة",
+        "top_cities_highst_average_price":"أعلى المدن حسب متوسط أسعار التأجير",
+        "count":"العدد",
+        "areaVsEvaluation":"العلاقة بين المساحة والتقييم",
+        "evaluation":"التقييم",
+        "evaluation_distribution":"توزيع فئات التقييم",
+        "area_dist_Properties":"توزيع العقارات حسب المساحة",
     }
 }
 
@@ -208,10 +240,52 @@ elif options == t["city_insights"]:
         f"<b>{t['most_common_category']}</b><br>{city_data['RsCategory'].mode()[0]}</div>", unsafe_allow_html=True)
 
     # Visualizations
-    st.subheader(f"{t['area_vs_price']} {city_selected}")
-    fig = px.scatter(city_data, x='Area', y='OneNightPrice', title=f"{t['area_vs_price']} {city_selected}",
-                     labels={'Area': t["enter_area"], 'OneNightPrice': t["average_price"]})
-    st.plotly_chart(fig, theme=None, use_container_width=True)
+    col21, col22 = st.columns(2)
+    with col21:
+        st.subheader(f"{t['area_vs_price']} {city_selected}")
+        fig = px.scatter(city_data, x='Area', y='OneNightPrice', title=f"{t['area_vs_price']} {city_selected}",
+                         labels={'Area': t["enter_area"], 'OneNightPrice': t["average_price"]})
+        st.plotly_chart(fig, theme=None, use_container_width=True)
+    with col22:
+        st.subheader(f"{t['price_distribution_all']}")
+        # Average Rental Price by City
+        # What is the average nightly rental price for properties in each city?
+        # Group by city and calculate the average price
+        avg_price_by_city = df.groupby('City')['OneNightPrice'].mean().sort_values().reset_index()
+        # Plot the bar chart
+        fig1 = px.bar(avg_price_by_city, x='City', y='OneNightPrice', title=t["price_distribution_all"], color='City', labels={'color': 'Legend'})
+        fig1.update_layout(
+        title_x=float(t["title_location"]),
+        xaxis_title=t['city'],           # Custom x-axis label
+        yaxis_title=t['average_price']   # Custom y-axis label
+        )
+        st.plotly_chart(fig1, theme=None, use_container_width=True)
+    col31, col32 = st.columns(2)
+    with col31:
+        st.subheader(f"{t['price_distribution']}  {city_selected}")
+        # Price Distribution Across Categories
+        # How does the rental price vary across different property categories?
+        # Plot the box plot
+        fig1 = px.box(city_data,x='RsCategory', y='OneNightPrice', title=f"{t['price_distribution']} {city_selected}", color='RsCategory', labels={'color': 'Legend'})
+        fig1.update_layout(
+        title_x=float(t["title_location"]),
+        xaxis_title=t['rsCategory'],     # Custom x-axis label
+        yaxis_title=t['one_night_price']   # Custom y-axis label
+            )
+        st.plotly_chart(fig1, theme=None, use_container_width=True)
+    with col32:
+        st.subheader(f"{t['top_cities_highst_average_price']}")
+        # Top Cities with Highest Average Rental Prices
+        # Which cities have the most expensive properties on average?
+        avg_price_by_city = df.groupby('City')['OneNightPrice'].mean().sort_values(ascending=False).reset_index()
+        # Plot the horizontal bar plot
+        fig1 = px.bar(avg_price_by_city, x='OneNightPrice', y='City', title=t["top_cities_highst_average_price"], color='City', labels={'color': 'Legend'}, orientation='h')
+        fig1.update_layout(
+        title_x=float(t["title_location"]),
+        xaxis_title=t['city'],     # Custom x-axis label
+        yaxis_title=t['average_price']   # Custom y-axis label
+            )
+        st.plotly_chart(fig1, theme=None, use_container_width=True)
 
 # Neighborhood Insights Dashboard
 elif options == t["neighborhood_insights"]:
@@ -219,6 +293,8 @@ elif options == t["neighborhood_insights"]:
     # City and Neighborhood Filters
     city_selected = st.sidebar.selectbox(t["select_city"], df['City'].unique())
     neighborhoods_in_city = df[df['City'] == city_selected]['Neighbourhood'].unique()
+    neighborhoods_with_evaluation = df[df['City'] == city_selected][['Neighbourhood', 'Evaluation']].drop_duplicates()
+    df_neighborhoods_with_evaluation = pd.DataFrame(neighborhoods_with_evaluation)
     neighborhood_selected = st.sidebar.selectbox(t["select_neighborhood"], neighborhoods_in_city)
 
     # Filtered Data
@@ -237,10 +313,26 @@ elif options == t["neighborhood_insights"]:
         f"<b>{t['average_evaluation']}</b><br>{df_filtered['Evaluation'].mean():.2f}</div>", unsafe_allow_html=True)
 
     # Visualizations
-    st.subheader(f"{t['price_distribution']} {neighborhood_selected}")
-    fig1 = px.box(df_filtered, y='OneNightPrice', title=f"{t['price_distribution']} {neighborhood_selected}")
-    st.plotly_chart(fig1, theme=None, use_container_width=True)
-
+    col11, col12 = st.columns(2)
+    with col11:
+        st.subheader(f"{t['price_distribution']} {neighborhood_selected}")
+        fig1 = px.box(df_filtered, y='OneNightPrice', title=f"{t['price_distribution']} {neighborhood_selected}")
+        st.plotly_chart(fig1, theme=None, use_container_width=True)
+    with col12:
+        st.subheader(f"{t['NeighborhoodsVsEvaluation']} {city_selected} ")
+        # Popular Neighborhoods Based on Evaluations
+        # Which neighborhoods have the highest average evaluations?
+        # Group by neighborhood and calculate the average evaluation
+        avg_evaluation_by_neighborhood = (
+            df_neighborhoods_with_evaluation.groupby('Neighbourhood')['Evaluation'].mean().sort_values(ascending=False).head(10).reset_index())
+        # Plot the bar plot
+        fig1 = px.bar(avg_evaluation_by_neighborhood, x='Neighbourhood', y='Evaluation', title=f"{t['NeighborhoodsVsEvaluation']} {city_selected}", color='Neighbourhood', labels={'color': 'Legend'})
+        fig1.update_layout(
+        title_x=float(t["title_location"]),
+        xaxis_title=t['neighborhood'],     # Custom x-axis label
+        yaxis_title=t['average_evaluation']   # Custom y-axis label
+            )
+        st.plotly_chart(fig1, theme=None, use_container_width=True)
 # Property Category Analysis Dashboard
 elif options == t["property_category_analysis"]:
     st.header(t["property_category_analysis"])
@@ -261,10 +353,50 @@ elif options == t["property_category_analysis"]:
         f"<b>{t['average_evaluation']}</b><br>{df_filtered['Evaluation'].mean():.2f}</div>", unsafe_allow_html=True)
 
     # Visualizations
-    st.subheader(f"{t['price_distribution']} {category_selected}")
-    fig1 = px.box(df_filtered, y='OneNightPrice', title=f"{t['price_distribution']} {category_selected}")
-    st.plotly_chart(fig1, theme=None, use_container_width=True)
-    
+    col11, col12 = st.columns(2)
+    with col11:
+        st.subheader(f"{t['property_distribution']} ")
+        # Distribution of Property Categories
+        # How are the different types of properties distributed across the dataset?
+        # Count property categories
+        category_distribution = df['RsCategory'].value_counts().reset_index()
+        # Plot the bar chart
+        fig1 = px.pie(df, names='RsCategory',title=t["property_distribution"], color='RsCategory', labels={'color': 'Legend'})
+        fig1.update_layout(
+        title_x=float(t['title_location']),
+            )
+        st.plotly_chart(fig1, theme=None, use_container_width=True)
+    with col12:
+        st.subheader(f"{t['price_distribution']}")
+        # Price Distribution Across Categories
+        # How does the rental price vary across different property categories?
+        # Plot the box plot
+        fig1 = px.box(df,x='RsCategory', y='OneNightPrice', title=t['price_distribution'], color='RsCategory', labels={'color': 'Legend'})
+        fig1.update_layout(
+        title_x=float(t["title_location"]),
+        xaxis_title=t['rsCategory'],     # Custom x-axis label
+        yaxis_title=t['one_night_price']   # Custom y-axis label
+            )
+        st.plotly_chart(fig1, theme=None, use_container_width=True)
+    col21, col22 = st.columns(2)
+    with col21:
+        st.subheader(f"{t['most_common_category']}")
+        # Most Popular Property Categories
+        #Which property types are most common in the dataset?
+        property_category_count = df['RsCategory'].value_counts()
+        # Plot the bar plot
+        fig1 = px.bar(property_category_count, x=property_category_count.index, y=property_category_count.values, title=t['most_common_category'], color='RsCategory', labels={'color': 'Legend'})
+        fig1.update_layout(
+        title_x=float(t["title_location"]),
+        xaxis_title=t['rsCategory'],     # Custom x-axis label
+        yaxis_title=t['count']   # Custom y-axis label
+            )
+        st.plotly_chart(fig1, theme=None, use_container_width=True)
+    with col22:
+        st.subheader(f"{t['price_distribution']} {category_selected}")
+        fig1 = px.box(df_filtered, y='OneNightPrice', title=f"{t['price_distribution']} {category_selected}")
+        st.plotly_chart(fig1, theme=None, use_container_width=True)
+        
 # Predictive Modeling Dashboard
 elif options == t["predictive_modeling"]:
     st.header(t["predictive_modeling"])
