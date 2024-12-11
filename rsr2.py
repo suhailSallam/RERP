@@ -98,9 +98,10 @@ texts = {
         "neighborhood_insights": "Neighborhood Insights",
         "select_neighborhood": "Select a Neighborhood",
         "price_distribution": "Price Distribution in",
-        "price_distribution_all": "Price Distribution in All Regions",
         "property_category_analysis": "Property Category Analysis",
         "select_category": "Select a Property Category",
+        "area_insights":"Area Insights",
+        "evaluation_insights":"Evaluation Insights",
         "predictive_modeling": "Predictive Modeling",
         "price_prediction": "Price Prediction",
         "predicted_price": "Predicted Nightly Price",
@@ -113,7 +114,7 @@ texts = {
         "title_location":"0.0",
         "area":"Area (sq. meters)",
         "one_night_price":"One Night Price",
-        "NeighborhoodsVsEvaluation":"Top 10 Neighborhoods by Average Evaluation in",
+        "NeighborhoodsVsEvaluation":"Top 10 Neighborhoods by Average Evaluation",
         "NeighborhoodsVsPropertyCount":"Top 10 Neighborhoods by Property Count",
         "neighborhood":"Neighborhood",
         "average_evaluation_city":"Average Evaluation by City",
@@ -121,8 +122,14 @@ texts = {
         "count":"Count",
         "areaVsEvaluation":"Relationship Between Area and Evaluation",
         "evaluation":"Evaluation",
-        "evaluation_distribution":"Evaluation Distribution in",
+        "evaluation_distribution":"Evaluation Distribution",
         "area_dist_Properties":"Area Distribution of Properties",
+        "most_common_Neighborhood":"Most Common Neighborhood",
+        "total_properties_area": "Total Properties",
+        "average_area": "Average Area",
+        "largest_property": "Largest Property",
+        "total_evaluated_properties": "Total Evaluated Properties",
+        "highest_evaluation": "Highest Evaluation",
     },
     "العربية": {
         "page_title": "نظام تحليل بيانات أسعار تأجير العقارات",
@@ -138,9 +145,10 @@ texts = {
         "neighborhood_insights": "رؤى الأحياء",
         "select_neighborhood": "اختر حيًا",
         "price_distribution": "توزيع الأسعار في",
-        "price_distribution_all": "توزيع الأسعار في كافة المناطق",
         "property_category_analysis": "تحليل فئات العقارات",
         "select_category": "اختر فئة عقارية",
+        "area_insights":"رؤى المساحة",
+        "evaluation_insights":"رؤى التقييم",
         "predictive_modeling": "النمذجة التنبؤية",
         "price_prediction": "توقع السعر",
         "predicted_price": "السعر الليلي المتوقع",
@@ -153,7 +161,7 @@ texts = {
         "title_location":"1.0",
         "area":"المساحة (بالمتر المربع)",
         "one_night_price":"سعر الليلة الواحدة",
-        "NeighborhoodsVsEvaluation":"أعلى 10 أحياء تقييماً في",
+        "NeighborhoodsVsEvaluation":"أعلى 10 أحياء تقييماً",
         "NeighborhoodsVsPropertyCount":"أفضل 10 أحياء حسب عدد العقارات",
         "neighborhood":"الحيّ",
         "average_evaluation_city":"متوسط التقييم حسب المدينة",
@@ -163,6 +171,12 @@ texts = {
         "evaluation":"التقييم",
         "evaluation_distribution":"توزيع فئات التقييم",
         "area_dist_Properties":"توزيع العقارات حسب المساحة",
+        "most_common_Neighborhood":"الحي الأكثر شيوعاً",
+        "total_properties_area": "إجمالي العقارات",
+        "average_area": "متوسط المساحة",
+        "largest_property": "أكبر عقار",
+        "total_evaluated_properties": "إجمالي العقارات المقيمة",
+        "highest_evaluation": "أعلى تقييم",
     }
 }
 
@@ -183,7 +197,9 @@ options = st.sidebar.radio(t["page_title"],
                             [t["general_overview"], 
                              t["city_insights"], 
                              t["neighborhood_insights"],
-                             t["property_category_analysis"], 
+                             t["property_category_analysis"],
+                             t["area_insights"],
+                             t["evaluation_insights"],                             
                              t["predictive_modeling"]])
 
 # General Overview Dashboard
@@ -333,6 +349,21 @@ elif options == t["neighborhood_insights"]:
         yaxis_title=t['average_evaluation']   # Custom y-axis label
             )
         st.plotly_chart(fig1, theme=None, use_container_width=True)
+
+    col21, col22 = st.columns(2)
+    with col21:
+        # Property Distribution by Neighborhood
+        #  Which neighborhoods have the highest number of properties?
+        neighborhood_count = df['Neighbourhood'].value_counts().head(10)
+        # Plot the bar plot
+        fig1 = px.bar(neighborhood_count, x=neighborhood_count.index, y=neighborhood_count.values, title=t['most_common_Neighborhood'], color='Neighbourhood', labels={'color': 'Legend'})
+        fig1.update_layout(
+        title_x=float(t["title_location"]),
+        xaxis_title=t['neighborhood'],     # Custom x-axis label
+        yaxis_title=t['count']   # Custom y-axis label
+            )
+        st.plotly_chart(fig1, theme=None, use_container_width=True)
+        
 # Property Category Analysis Dashboard
 elif options == t["property_category_analysis"]:
     st.header(t["property_category_analysis"])
@@ -396,7 +427,118 @@ elif options == t["property_category_analysis"]:
         st.subheader(f"{t['price_distribution']} {category_selected}")
         fig1 = px.box(df_filtered, y='OneNightPrice', title=f"{t['price_distribution']} {category_selected}")
         st.plotly_chart(fig1, theme=None, use_container_width=True)
+
+# Area Insights Dashboard
+elif options == t["area_insights"]:
+    st.header(t["area_insights"])
+    # Metrics
+    col1, col2, col3 = st.columns(3)
+    col1.markdown(
+        f"<div style='font-size: 20px; color: white; background-color: #FF6347; padding: 10px; border-radius: 5px;'>"
+        f"<b>{t['total_properties_area']}</b><br>{len(df)}</div>", unsafe_allow_html=True)
+    col2.markdown(
+        f"<div style='font-size: 20px; color: white; background-color: #4682B4; padding: 10px; border-radius: 5px;'>"
+        f"<b>{t['average_area']}</b><br>{df['Area'].mean():.2f} sq.m</div>", unsafe_allow_html=True)
+    col3.markdown(
+        f"<div style='font-size: 20px; color: white; background-color: #32CD32; padding: 10px; border-radius: 5px;'>"
+        f"<b>{t['largest_property']}</b><br>{df['Area'].max()} sq.m</div>", unsafe_allow_html=True)
+    # Visualizations
+    col11, col12 = st.columns(2)
+    with col11:
+        st.subheader(f"{t['area_vs_price']}")
+        # Relationship Between Area and Price
+        # How does the area of a property affect its nightly rental price?
+        # Scatter plot
+        fig1 = px.scatter(df,x='Area', y= 'OneNightPrice', title=t["area_vs_price"])
+        fig1.update_layout(
+        title_x=float(t['title_location']),
+        xaxis_title=t['area'],             # Custom x-axis label
+        yaxis_title=t['one_night_price']   # Custom y-axis label
+            )
+        st.plotly_chart(fig1, theme=None, use_container_width=True)
+    with col12:
+        st.subheader(f"{t['areaVsEvaluation']}")
+        # Relationship Between Area and Evaluation
+        # Is there a correlation between the area of a property and its evaluation?
+        # Scatter plot
+        fig1 = px.scatter(df,x='Area', y= 'Evaluation', size='Evaluation', color='Area', title=t['areaVsEvaluation'])
+        fig1.update_layout(
+        title_x=float(t['title_location']),
+        xaxis_title=t['area'],             # Custom x-axis label
+        yaxis_title=t['evaluation']   # Custom y-axis label
+            )
+        st.plotly_chart(fig1, theme=None, use_container_width=True)
+
+    col21, col22 = st.columns(2)
+    with col21:
+        st.subheader(f"{t['area_dist_Properties']}")
+        # Area Distribution
+        # What is the distribution of property areas?
+        # Plot the box plot
+        fig1 = px.box(df,x='RsCategory', y='Area', title=t['area_dist_Properties'], color='RsCategory', labels={'color': 'Legend'})
+        fig1.update_layout(
+        title_x=float(t["title_location"]),
+        xaxis_title=t['rsCategory'],     # Custom x-axis label
+        yaxis_title=t['area']   # Custom y-axis label
+            )
+        st.plotly_chart(fig1, theme=None, use_container_width=True)
         
+# Evaluation Insights Dashboard
+elif options == t["evaluation_insights"]:
+    st.header(t["evaluation_insights"])
+    # Metrics
+    col1, col2, col3 = st.columns(3)
+    col1.markdown(
+        f"<div style='font-size: 20px; color: white; background-color: #FF6347; padding: 10px; border-radius: 5px;'>"
+        f"<b>{t['total_evaluated_properties']}</b><br>{df['Evaluation'].count()}</div>", unsafe_allow_html=True)
+    col2.markdown(
+        f"<div style='font-size: 20px; color: white; background-color: #4682B4; padding: 10px; border-radius: 5px;'>"
+        f"<b>{t['average_evaluation']}</b><br>{df['Evaluation'].mean():.2f}</div>", unsafe_allow_html=True)
+    col3.markdown(
+        f"<div style='font-size: 20px; color: white; background-color: #32CD32; padding: 10px; border-radius: 5px;'>"
+        f"<b>{t['highest_evaluation']}</b><br>{df['Evaluation'].max()}</div>", unsafe_allow_html=True)
+    # Visualizations
+    col11, col12 = st.columns(2)
+    with col11:
+        st.subheader(f"{t['average_evaluation_city']}")
+        # Average Evaluation by City
+        # Which cities have the highest average property evaluations?
+        avg_evaluation_by_city = df.groupby('City')['Evaluation'].mean().sort_values().reset_index()
+        # Plot the horizontal bar plot
+        fig1 = px.bar(avg_evaluation_by_city, x='Evaluation', y='City', title=t["average_evaluation_city"], color='City', labels={'color': 'Legend'}, orientation='h')
+        fig1.update_layout(
+        title_x=float(t["title_location"]),
+        xaxis_title=t['city'],     # Custom x-axis label
+        yaxis_title=t['average_evaluation']   # Custom y-axis label
+            )
+        st.plotly_chart(fig1, theme=None, use_container_width=True)
+    with col12:
+        st.subheader(f"{t['areaVsEvaluation']}")
+        # Relationship Between Area and Evaluation
+        # Is there a correlation between the area of a property and its evaluation?
+        # Scatter plot
+        fig1 = px.scatter(df,x='Area', y= 'Evaluation', size='Evaluation', color='Area', title=t['areaVsEvaluation'])
+        fig1.update_layout(
+        title_x=float(t['title_location']),
+        xaxis_title=t['area'],             # Custom x-axis label
+        yaxis_title=t['evaluation']   # Custom y-axis label
+            )
+        st.plotly_chart(fig1, theme=None, use_container_width=True)
+
+    col21, col22 = st.columns(2)
+    with col21:
+        st.subheader(f"{t['evaluation_distribution']}")
+        # Evaluation Distribution
+        # How are property evaluations distributed across the dataset?
+        # Plot the histogram plot
+        fig1 = px.histogram(df, x='Evaluation', title=t['evaluation_distribution'], color='Evaluation', labels={'color': 'Legend'})
+        fig1.update_layout(
+        title_x=float(t["title_location"]),
+        xaxis_title=t['evaluation'],     # Custom x-axis label
+        yaxis_title=t['count']   # Custom y-axis label
+            )
+        st.plotly_chart(fig1, theme=None, use_container_width=True)
+
 # Predictive Modeling Dashboard
 elif options == t["predictive_modeling"]:
     st.header(t["predictive_modeling"])
